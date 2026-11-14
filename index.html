@@ -1642,7 +1642,7 @@ var DATA = [
 ["Zugu", "Boulder Blaster", "fig-002744", "njo0125", "Zugu", "70747-1", "Boulder Blaster", 2015, "unowned"],
 ];
 
-var state = { q:"", char:"", sort:"yearDesc", view:"grid", own:"unowned" };
+var state = { q:"", chars:[], sort:"yearDesc", view:"grid", own:"unowned" };
 function ownOf(d){ return d[8] === "unowned" ? "unowned" : "owned"; }
 function ownLabel(d){ return ownOf(d) === "unowned" ? "未擁有" : "已擁有"; }
 function syncOwnToggle(){
@@ -1689,7 +1689,7 @@ function filtered(){
   var q = state.q.trim().toLowerCase();
   var out = DATA.filter(function(d){
     if (ownOf(d) !== state.own) return false;
-    if (state.char && d[0] !== state.char) return false;
+    if (state.chars.length && state.chars.indexOf(d[0]) === -1) return false;
     if (q){
       var hay = (d[0]+" "+d[1]+" "+d[2]+" "+d[3]+" "+d[4]+" "+d[5]+" "+d[6]+" "+d[7]).toLowerCase();
       if (hay.indexOf(q) === -1) return false;
@@ -1724,18 +1724,18 @@ function render(){
   var dockBtns = document.querySelectorAll(".dock-btn");
   for (var di = 0; di < dockBtns.length; di++){
     var dk = dockBtns[di].getAttribute("data-dock");
-    var on = (dk === "search" && !!state.q) || (dk === "browse" && (!!state.char || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
+    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
     dockBtns[di].classList.toggle("has-filter", !!on);
   }
 
   syncOwnToggle();
   resultLine.innerHTML = "顯示 <b>" + items.length + "</b> 隻 · " + (state.own === "unowned" ? "未擁有" : "已擁有") +
-    (state.char ? " · 角色：" + esc(state.char) : "") +
+    (state.chars.length ? " · 角色：" + state.chars.map(function(c){ return esc(c); }).join("、") : "") +
     (state.q ? " · 搜尋：「" + esc(state.q) + "」" : "");
   if (!items.length){
     var et = document.getElementById("emptyTitle");
     var ex = document.getElementById("emptyText");
-    if (state.own === "unowned" && !state.q && !state.char){
+    if (state.own === "unowned" && !state.q && !state.chars.length){
       et.textContent = "尚無未擁有的人偶";
       ex.textContent = "之後新增的未擁有人偶會顯示在這裡；切回「已擁有」可看目前收藏。";
     } else {
@@ -1789,22 +1789,27 @@ function bindCards(){
 }
 
 /* chips */
+function toggleChar(c){
+  if (c === ""){ state.chars = []; return; }
+  var i = state.chars.indexOf(c);
+  if (i === -1) state.chars.push(c); else state.chars.splice(i, 1);
+}
 function buildChips(){
   var counts = {};
   var total = 0;
   DATA.forEach(function(d){ if (ownOf(d) !== state.own) return; total++; counts[d[0]] = (counts[d[0]] || 0) + 1; });
   var chars = Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a] || a.localeCompare(b); });
   var statEl = document.getElementById("statChars"); if (statEl) statEl.textContent = chars.length;
-  var html = '<button class="chip" data-char="" aria-pressed="' + (state.char==="" ? "true" : "false") + '">全部角色 <span class="cnt">' + total + '</span></button>';
+  var html = '<button class="chip" data-char="" aria-pressed="' + (state.chars.length === 0 ? "true" : "false") + '">全部角色 <span class="cnt">' + total + '</span></button>';
   html += chars.map(function(c){
-    return '<button class="chip" data-char="' + esc(c) + '" aria-pressed="' + (state.char===c ? "true" : "false") + '"><span class="dot" style="background:' + colorOf(c) + '"></span>' + esc(c) + ' <span class="cnt">' + counts[c] + '</span></button>';
+    return '<button class="chip" data-char="' + esc(c) + '" aria-pressed="' + (state.chars.indexOf(c) !== -1 ? "true" : "false") + '"><span class="dot" style="background:' + colorOf(c) + '"></span>' + esc(c) + ' <span class="cnt">' + counts[c] + '</span></button>';
   }).join("");
   var wrap = document.getElementById("chips");
   wrap.innerHTML = html;
   var btns = wrap.querySelectorAll(".chip");
   for (var i = 0; i < btns.length; i++){
     btns[i].addEventListener("click", function(){
-      state.char = this.getAttribute("data-char");
+      toggleChar(this.getAttribute("data-char"));
       buildChips(); render();
     });
   }
@@ -1814,9 +1819,8 @@ function buildChips(){
     var mBtns = mWrap.querySelectorAll(".chip");
     for (var mi = 0; mi < mBtns.length; mi++){
       mBtns[mi].addEventListener("click", function(){
-        state.char = this.getAttribute("data-char");
+        toggleChar(this.getAttribute("data-char"));
         buildChips(); render();
-        setDockPanel("");
       });
     }
   }
@@ -1866,7 +1870,7 @@ chipsToggle.addEventListener("click", function(){
 /* controls — 已擁有 / 未擁有（位於展開／收起分類左邊） */
 function setOwn(v){
   if (state.own === v) return;
-  state.own = v; state.char = "";
+  state.own = v; state.chars = [];
   buildChips(); render();
 }
 document.getElementById("ownOwned").addEventListener("click", function(){ setOwn("owned"); });
@@ -1876,7 +1880,7 @@ document.getElementById("sortSel").addEventListener("change", function(){ state.
 document.getElementById("viewGrid").addEventListener("click", function(){ state.view = "grid"; render(); });
 document.getElementById("viewList").addEventListener("click", function(){ state.view = "list"; render(); });
 document.getElementById("clearBtn").addEventListener("click", function(){
-  state.q = ""; state.char = ""; state.own = "unowned";
+  state.q = ""; state.chars = []; state.own = "unowned";
   document.getElementById("q").value = "";
   var mqEl = document.getElementById("mQ"); if (mqEl) mqEl.value = "";
   buildChips(); render();
