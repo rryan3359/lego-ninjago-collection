@@ -475,6 +475,7 @@
           <button type="button" id="ownUnowned" data-own="unowned" aria-pressed="true">未擁有 <span class="cnt" id="ownUnownedCnt">1032</span></button>
         </div>
         <button class="chips-toggle" id="wishBtn" type="button">願望清單 <span class="cnt" id="wantCnt">0</span></button>
+        <button class="chips-toggle" id="exportBtn" type="button">匯出我的資料</button>
         <button class="chips-toggle" id="chipsToggle" type="button" aria-expanded="false" aria-controls="chips">
           <span id="chipsToggleLabel">展開分類</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>
@@ -556,6 +557,7 @@
       <button type="button" id="mOwnUnowned" aria-pressed="true">未擁有 <span class="cnt" id="mOwnUnownedCnt">1032</span></button>
     </div>
     <button type="button" class="wish-btn" id="mWishBtn">願望清單 <span class="cnt" id="mWishCnt">0</span></button>
+    <button type="button" class="wish-btn" id="mExportBtn">匯出我的資料</button>
   </div>
 </div>
 
@@ -1720,6 +1722,43 @@ function saveMine(){
     localStorage.setItem(LS_KEY, JSON.stringify({owned:Array.from(myOwned), removed:Array.from(myRemoved), wanted:Array.from(myWanted)}));
   }catch(e){}
 }
+// 匯出我的資料（唯讀：只讀 localStorage，不修改、不清除原始資料）
+function exportMine(){
+  var raw = null;
+  try{ raw = localStorage.getItem(LS_KEY); }catch(e){ alert("無法讀取手機上的收藏資料：" + (e && e.message ? e.message : e)); return; }
+  var data = { owned:[], removed:[], wanted:[] };
+  var status = "ok";
+  if (raw === null){
+    status = "no_record";
+  } else {
+    var o;
+    try{ o = JSON.parse(raw); }catch(e){ alert("手機上的收藏資料不是有效的 JSON，無法匯出。"); return; }
+    if (!o || typeof o !== "object" || !Array.isArray(o.owned) || !Array.isArray(o.removed) || !Array.isArray(o.wanted)){
+      alert("手機上的收藏資料格式不完整（owned／removed／wanted 必須都是陣列），已停止匯出。"); return;
+    }
+    var bad = false;
+    ["owned","removed","wanted"].forEach(function(k){ o[k].forEach(function(f){ if (typeof f !== "string") bad = true; }); });
+    if (bad){ alert("手機上的收藏資料有非文字的人偶編號，已停止匯出。"); return; }
+    data = { owned:o.owned.slice(), removed:o.removed.slice(), wanted:o.wanted.slice() };
+  }
+  var out = {
+    exported_at: new Date().toISOString(),
+    source: location.origin,
+    key: LS_KEY,
+    status: status,
+    counts: { owned:data.owned.length, removed:data.removed.length, wanted:data.wanted.length },
+    data: data
+  };
+  var blob = new Blob([JSON.stringify(out, null, 2)], { type:"application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lego-ninjago-mine-backup.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  alert("已下載 lego-ninjago-mine-backup.json\n收藏（手機新增）：" + data.owned.length + " 隻\n移出收藏：" + data.removed.length + " 隻\n願望清單：" + data.wanted.length + " 隻\n請確認願望清單數字與網站上顯示的一致，再把這個檔案傳給我。");
+}
 loadMine();
 function ownOf(d){ var base = d[8] === "owned"; return ((base && !myRemoved.has(d[2])) || myOwned.has(d[2])) ? "owned" : "unowned"; }
 function isWanted(d){ return myWanted.has(d[2]); }
@@ -2159,6 +2198,8 @@ document.getElementById("mOwnUnowned").addEventListener("click", function(){ set
 function showWishlist(){ state.own = "wanted"; buildChips(); render(); window.scrollTo({ top:0 }); }
 document.getElementById("mWishBtn").addEventListener("click", function(){ showWishlist(); setDockPanel(""); });
 document.getElementById("wishBtn").addEventListener("click", function(){ showWishlist(); });
+document.getElementById("mExportBtn").addEventListener("click", function(){ exportMine(); setDockPanel(""); });
+document.getElementById("exportBtn").addEventListener("click", function(){ exportMine(); });
 document.getElementById("mYearBtn").addEventListener("click", function(){
   var menu = document.getElementById("mYearMenu");
   var open = menu.hidden;
