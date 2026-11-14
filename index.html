@@ -101,6 +101,15 @@
   .chip .cnt{color:var(--ink3);font-size:12px}
   .chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
   .chip[aria-pressed="true"] .cnt{color:inherit;opacity:.65}
+  .chip-find .find-caret{display:inline-block;transition:transform .15s;font-size:11px}
+  .chip-find[aria-expanded="true"] .find-caret{transform:rotate(180deg)}
+  .more-chars{margin-top:8px;border:1px solid var(--line2);border-radius:12px;background:var(--card2);max-height:264px;overflow-y:auto;padding:6px}
+  .more-chars.is-hidden{display:none}
+  .char-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font-size:14px;font-family:inherit;padding:9px 10px;border-radius:8px;cursor:pointer}
+  .char-row:hover{background:rgba(255,255,255,.06)}
+  .char-row[aria-pressed="true"]{background:rgba(230,46,46,.16);color:#fff}
+  .char-row .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .char-row .cnt{margin-left:auto;color:var(--ink3);font-size:12px}
   .result-line{font-size:13px;color:var(--ink2);margin:12px 2px 0}
   .result-line b{color:var(--ink)}
 
@@ -473,6 +482,7 @@
       </div>
     </div>
     <div class="chips is-hidden" id="chips"></div>
+    <div class="more-chars is-hidden" id="moreChars" hidden></div>
     <select id="yearSel" class="is-hidden" aria-label="年份"></select>
     <p class="result-line" id="resultLine"></p>
   </div>
@@ -537,6 +547,7 @@
     <div>
       <p class="dock-sub-label">角色分類</p>
       <div class="m-chips" id="mChips"></div>
+      <div class="more-chars" id="mMoreChars" hidden></div>
     </div>
   </div>
   <div class="dock-section" data-section="own" hidden>
@@ -1916,10 +1927,38 @@ document.getElementById("cardMenuOverlay").addEventListener("click", function(e)
 document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeCardMenu(); });
 
 /* chips */
+var PINNED_CHARS = ["Lloyd", "Kai", "Zane", "Jay", "Cole", "Nya"];
+var moreOpen = false;
 function toggleChar(c){
   if (c === ""){ state.chars = []; return; }
   var i = state.chars.indexOf(c);
   if (i === -1) state.chars.push(c); else state.chars.splice(i, 1);
+}
+function chipHtml(c, counts){
+  return '<button class="chip" data-char="' + esc(c) + '" aria-pressed="' + (state.chars.indexOf(c) !== -1 ? "true" : "false") + '"><span class="dot" style="background:' + colorOf(c) + '"></span>' + esc(c) + ' <span class="cnt">' + counts[c] + '</span></button>';
+}
+function bindCharButtons(wrap){
+  var btns = wrap.querySelectorAll(".chip[data-char]");
+  for (var i = 0; i < btns.length; i++){
+    btns[i].addEventListener("click", function(){
+      toggleChar(this.getAttribute("data-char"));
+      buildChips(); render();
+    });
+  }
+  var findBtns = wrap.querySelectorAll(".chip-find");
+  for (var j = 0; j < findBtns.length; j++){
+    findBtns[j].addEventListener("click", function(){
+      moreOpen = !moreOpen;
+      buildChips();
+    });
+  }
+  var rows = wrap.querySelectorAll(".char-row");
+  for (var k = 0; k < rows.length; k++){
+    rows[k].addEventListener("click", function(){
+      toggleChar(this.getAttribute("data-char"));
+      buildChips(); render();
+    });
+  }
 }
 function buildChips(){
   var counts = {};
@@ -1927,30 +1966,28 @@ function buildChips(){
   DATA.forEach(function(d){ if (!matchesOwn(d)) return; total++; counts[d[0]] = (counts[d[0]] || 0) + 1; });
   var chars = Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a] || a.localeCompare(b); });
   var statEl = document.getElementById("statChars"); if (statEl) statEl.textContent = chars.length;
+  var others = chars.filter(function(c){ return PINNED_CHARS.indexOf(c) === -1; });
   var html = '<button class="chip" data-char="" aria-pressed="' + (state.chars.length === 0 ? "true" : "false") + '">全部角色 <span class="cnt">' + total + '</span></button>';
-  html += chars.map(function(c){
-    return '<button class="chip" data-char="' + esc(c) + '" aria-pressed="' + (state.chars.indexOf(c) !== -1 ? "true" : "false") + '"><span class="dot" style="background:' + colorOf(c) + '"></span>' + esc(c) + ' <span class="cnt">' + counts[c] + '</span></button>';
-  }).join("");
+  PINNED_CHARS.forEach(function(c){ if (counts[c]) html += chipHtml(c, counts); });
+  chars.forEach(function(c){ if (PINNED_CHARS.indexOf(c) === -1 && state.chars.indexOf(c) !== -1) html += chipHtml(c, counts); });
+  if (others.length > 0){
+    html += '<button class="chip chip-find" type="button" aria-expanded="' + (moreOpen ? "true" : "false") + '">找尋角色 <span class="find-caret">&#9662;</span></button>';
+  }
   var wrap = document.getElementById("chips");
   wrap.innerHTML = html;
-  var btns = wrap.querySelectorAll(".chip");
-  for (var i = 0; i < btns.length; i++){
-    btns[i].addEventListener("click", function(){
-      toggleChar(this.getAttribute("data-char"));
-      buildChips(); render();
-    });
-  }
+  bindCharButtons(wrap);
   var mWrap = document.getElementById("mChips");
   if (mWrap){
     mWrap.innerHTML = html;
-    var mBtns = mWrap.querySelectorAll(".chip");
-    for (var mi = 0; mi < mBtns.length; mi++){
-      mBtns[mi].addEventListener("click", function(){
-        toggleChar(this.getAttribute("data-char"));
-        buildChips(); render();
-      });
-    }
+    bindCharButtons(mWrap);
   }
+  var listHtml = others.map(function(c){
+    return '<button class="char-row" data-char="' + esc(c) + '" aria-pressed="' + (state.chars.indexOf(c) !== -1 ? "true" : "false") + '"><span class="dot" style="background:' + colorOf(c) + '"></span>' + esc(c) + ' <span class="cnt">' + counts[c] + '</span></button>';
+  }).join("");
+  var moreEl = document.getElementById("moreChars");
+  if (moreEl){ moreEl.innerHTML = listHtml; moreEl.hidden = !moreOpen; bindCharButtons(moreEl); }
+  var mMoreEl = document.getElementById("mMoreChars");
+  if (mMoreEl){ mMoreEl.innerHTML = listHtml; mMoreEl.hidden = !moreOpen; bindCharButtons(mMoreEl); }
   buildYearUI();
 }
 function setYear(y){
@@ -2034,6 +2071,8 @@ chipsToggle.addEventListener("click", function(){
   var hidden = chipsEl.classList.toggle("is-hidden");
   var yearsEl = document.getElementById("yearSel");
   if (yearsEl) yearsEl.classList.toggle("is-hidden", hidden);
+  var moreEl = document.getElementById("moreChars");
+  if (moreEl) moreEl.classList.toggle("is-hidden", hidden);
   chipsHead.classList.toggle("is-collapsed", hidden);
   chipsToggle.setAttribute("aria-expanded", hidden ? "false" : "true");
   document.getElementById("chipsToggleLabel").textContent = hidden ? "展開分類" : "收起分類";
