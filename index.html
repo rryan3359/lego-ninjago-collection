@@ -277,7 +277,7 @@
 
     /* --- 上方控制列：整排隱藏，只保留結果行作牆面資訊 --- */
     .controls{position:static;border-bottom:0;padding:4px 0 0;margin-top:10px;background:transparent}
-    .controls .ctrl-row,.controls .chips-head,.controls #chips{display:none}
+    .controls .ctrl-row,.controls .chips-head,.controls #chips,.controls #years{display:none}
     .result-line{margin:2px 2px 0;font-size:12.5px;color:var(--ink3)}
 
     /* --- 展開面板：浮在 dock 上方的卡片，內容過長時面板內捲動 --- */
@@ -443,6 +443,7 @@
       </div>
     </div>
     <div class="chips is-hidden" id="chips"></div>
+    <div class="chips is-hidden" id="years"></div>
     <p class="result-line" id="resultLine"></p>
   </div>
 
@@ -499,6 +500,10 @@
     <div>
       <p class="dock-sub-label">角色分類</p>
       <div class="m-chips" id="mChips"></div>
+    </div>
+    <div>
+      <p class="dock-sub-label">年份</p>
+      <div class="m-chips" id="mYears"></div>
     </div>
   </div>
   <div class="dock-section" data-section="own" hidden>
@@ -1642,7 +1647,7 @@ var DATA = [
 ["Zugu", "Boulder Blaster", "fig-002744", "njo0125", "Zugu", "70747-1", "Boulder Blaster", 2015, "unowned"],
 ];
 
-var state = { q:"", chars:[], sort:"yearDesc", view:"grid", own:"unowned" };
+var state = { q:"", chars:[], years:[], sort:"yearDesc", view:"grid", own:"unowned" };
 function ownOf(d){ return d[8] === "unowned" ? "unowned" : "owned"; }
 function ownLabel(d){ return ownOf(d) === "unowned" ? "未擁有" : "已擁有"; }
 function syncOwnToggle(){
@@ -1690,6 +1695,7 @@ function filtered(){
   var out = DATA.filter(function(d){
     if (ownOf(d) !== state.own) return false;
     if (state.chars.length && state.chars.indexOf(d[0]) === -1) return false;
+    if (state.years.length && state.years.indexOf(d[7]) === -1) return false;
     if (q){
       var hay = (d[0]+" "+d[1]+" "+d[2]+" "+d[3]+" "+d[4]+" "+d[5]+" "+d[6]+" "+d[7]).toLowerCase();
       if (hay.indexOf(q) === -1) return false;
@@ -1724,18 +1730,19 @@ function render(){
   var dockBtns = document.querySelectorAll(".dock-btn");
   for (var di = 0; di < dockBtns.length; di++){
     var dk = dockBtns[di].getAttribute("data-dock");
-    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
+    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || state.years.length > 0 || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
     dockBtns[di].classList.toggle("has-filter", !!on);
   }
 
   syncOwnToggle();
   resultLine.innerHTML = "顯示 <b>" + items.length + "</b> 隻 · " + (state.own === "unowned" ? "未擁有" : "已擁有") +
     (state.chars.length ? " · 角色：" + state.chars.map(function(c){ return esc(c); }).join("、") : "") +
+    (state.years.length ? " · 年份：" + state.years.slice().sort(function(a,b){ return b - a; }).join("、") : "") +
     (state.q ? " · 搜尋：「" + esc(state.q) + "」" : "");
   if (!items.length){
     var et = document.getElementById("emptyTitle");
     var ex = document.getElementById("emptyText");
-    if (state.own === "unowned" && !state.q && !state.chars.length){
+    if (state.own === "unowned" && !state.q && !state.chars.length && !state.years.length){
       et.textContent = "尚無未擁有的人偶";
       ex.textContent = "之後新增的未擁有人偶會顯示在這裡；切回「已擁有」可看目前收藏。";
     } else {
@@ -1824,6 +1831,45 @@ function buildChips(){
       });
     }
   }
+  buildYearChips();
+}
+function toggleYear(y){
+  if (y === ""){ state.years = []; return; }
+  var n = +y;
+  var i = state.years.indexOf(n);
+  if (i === -1) state.years.push(n); else state.years.splice(i, 1);
+}
+function buildYearChips(){
+  var counts = {};
+  var total = 0;
+  DATA.forEach(function(d){ if (ownOf(d) !== state.own) return; total++; counts[d[7]] = (counts[d[7]] || 0) + 1; });
+  var years = Object.keys(counts).map(function(y){ return +y; }).sort(function(a,b){ return b - a; });
+  var html = '<button class="chip" data-year="" aria-pressed="' + (state.years.length === 0 ? "true" : "false") + '">全部年份 <span class="cnt">' + total + '</span></button>';
+  html += years.map(function(y){
+    return '<button class="chip" data-year="' + y + '" aria-pressed="' + (state.years.indexOf(y) !== -1 ? "true" : "false") + '">' + y + ' <span class="cnt">' + counts[y] + '</span></button>';
+  }).join("");
+  var wrap = document.getElementById("years");
+  if (wrap){
+    wrap.innerHTML = html;
+    var btns = wrap.querySelectorAll(".chip");
+    for (var i = 0; i < btns.length; i++){
+      btns[i].addEventListener("click", function(){
+        toggleYear(this.getAttribute("data-year"));
+        buildYearChips(); render();
+      });
+    }
+  }
+  var mWrap = document.getElementById("mYears");
+  if (mWrap){
+    mWrap.innerHTML = html;
+    var mBtns = mWrap.querySelectorAll(".chip");
+    for (var mi = 0; mi < mBtns.length; mi++){
+      mBtns[mi].addEventListener("click", function(){
+        toggleYear(this.getAttribute("data-year"));
+        buildYearChips(); render();
+      });
+    }
+  }
 }
 
 /* sheet */
@@ -1862,6 +1908,8 @@ var chipsHead = document.getElementById("chipsHead");
 var chipsToggle = document.getElementById("chipsToggle");
 chipsToggle.addEventListener("click", function(){
   var hidden = chipsEl.classList.toggle("is-hidden");
+  var yearsEl = document.getElementById("years");
+  if (yearsEl) yearsEl.classList.toggle("is-hidden", hidden);
   chipsHead.classList.toggle("is-collapsed", hidden);
   chipsToggle.setAttribute("aria-expanded", hidden ? "false" : "true");
   document.getElementById("chipsToggleLabel").textContent = hidden ? "展開分類" : "收起分類";
@@ -1870,7 +1918,7 @@ chipsToggle.addEventListener("click", function(){
 /* controls — 已擁有 / 未擁有（位於展開／收起分類左邊） */
 function setOwn(v){
   if (state.own === v) return;
-  state.own = v; state.chars = [];
+  state.own = v; state.chars = []; state.years = [];
   buildChips(); render();
 }
 document.getElementById("ownOwned").addEventListener("click", function(){ setOwn("owned"); });
@@ -1880,7 +1928,7 @@ document.getElementById("sortSel").addEventListener("change", function(){ state.
 document.getElementById("viewGrid").addEventListener("click", function(){ state.view = "grid"; render(); });
 document.getElementById("viewList").addEventListener("click", function(){ state.view = "list"; render(); });
 document.getElementById("clearBtn").addEventListener("click", function(){
-  state.q = ""; state.chars = []; state.own = "unowned";
+  state.q = ""; state.chars = []; state.years = []; state.own = "unowned";
   document.getElementById("q").value = "";
   var mqEl = document.getElementById("mQ"); if (mqEl) mqEl.value = "";
   buildChips(); render();
