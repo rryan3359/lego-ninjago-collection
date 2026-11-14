@@ -64,6 +64,20 @@
   .own-toggle button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
   .own-toggle button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
   .badge-unowned{position:absolute;top:8px;right:8px;background:var(--ink);color:var(--card);font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;letter-spacing:.02em}
+  .card-more{position:absolute;top:8px;left:8px;z-index:2;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+  .card-more:hover,.card-more:focus-visible{background:rgba(0,0,0,.8);outline:none}
+  .row .card-more{top:6px;left:6px;width:26px;height:26px;font-size:13px}
+  .cardmenu-overlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px}
+  .cardmenu-overlay[hidden]{display:none}
+  .cardmenu{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:14px;width:min(320px,90vw);box-shadow:0 14px 38px rgba(0,0,0,.55)}
+  .cardmenu-title{font-size:15px;font-weight:700;margin:2px 4px 10px;color:var(--ink);text-align:center}
+  .cardmenu button{display:block;width:100%;min-height:48px;border:0;border-radius:999px;background:transparent;color:var(--ink);font-size:16px;font-family:inherit;cursor:pointer;text-align:center}
+  .cardmenu button:hover{background:var(--card2)}
+  .cardmenu button[hidden]{display:none}
+  .cardmenu-cancel{color:var(--ink2)}
+  .wish-btn{width:100%;min-height:50px;margin-top:12px;border:1px solid var(--line2);border-radius:12px;background:var(--card2);color:var(--ink);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+  .wish-btn .cnt{font-size:12.5px;font-weight:500;opacity:.75}
+  .chips-toggle .cnt{font-size:12px;font-weight:500;opacity:.75}
   .own-tag{display:inline-flex;align-items:center;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--ink2);background:var(--card2)}
   .own-tag.is-unowned{color:var(--ink);border-style:dashed}
   .chips-toggle{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
@@ -117,7 +131,7 @@
   .list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
   .row{background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;gap:12px;align-items:center;padding:10px 12px;cursor:pointer;box-shadow:var(--shadow);text-align:left;font-family:inherit;color:var(--ink);width:100%}
   .row:focus-visible{outline:2px solid var(--red);outline-offset:2px}
-  .row .rthumb{width:64px;height:64px;flex:none;border-radius:8px;overflow:hidden;background:#e9e4d8;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+  .row .rthumb{width:64px;height:64px;flex:none;border-radius:8px;overflow:hidden;background:#e9e4d8;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative}
   .row .rthumb img{width:100%;height:100%;object-fit:contain}
   .row .rthumb .fallback{display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:"Noto Serif TC",serif;font-size:22px;font-weight:900;color:#fff}
   .row .rthumb.noimg img{display:none}
@@ -445,6 +459,7 @@
           <button type="button" id="ownOwned" data-own="owned" aria-pressed="false">已擁有 <span class="cnt" id="ownOwnedCnt">42</span></button>
           <button type="button" id="ownUnowned" data-own="unowned" aria-pressed="true">未擁有 <span class="cnt" id="ownUnownedCnt">1032</span></button>
         </div>
+        <button class="chips-toggle" id="wishBtn" type="button">願望清單 <span class="cnt" id="wantCnt">0</span></button>
         <button class="chips-toggle" id="chipsToggle" type="button" aria-expanded="false" aria-controls="chips">
           <span id="chipsToggleLabel">展開分類</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>
@@ -523,6 +538,7 @@
       <button type="button" id="mOwnOwned" aria-pressed="false">已擁有 <span class="cnt" id="mOwnOwnedCnt">42</span></button>
       <button type="button" id="mOwnUnowned" aria-pressed="true">未擁有 <span class="cnt" id="mOwnUnownedCnt">1032</span></button>
     </div>
+    <button type="button" class="wish-btn" id="mWishBtn">願望清單 <span class="cnt" id="mWishCnt">0</span></button>
   </div>
 </div>
 
@@ -543,6 +559,14 @@
   </footer>
 </div>
 
+<div class="cardmenu-overlay" id="cardMenuOverlay" hidden>
+  <div class="cardmenu" role="menu" aria-label="人偶選項">
+    <div class="cardmenu-title" id="cardMenuTitle"></div>
+    <button type="button" id="cardMenuOwn"></button>
+    <button type="button" id="cardMenuWant"></button>
+    <button type="button" class="cardmenu-cancel" id="cardMenuCancel">取消</button>
+  </div>
+</div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="sheetName">
   <div class="sheet">
     <div class="sheet-img" id="sheetImgWrap">
@@ -1660,7 +1684,29 @@ var DATA = [
 ];
 
 var state = { q:"", chars:[], year:null, sort:"yearDesc", view:"grid", own:"unowned" };
-function ownOf(d){ return d[8] === "unowned" ? "unowned" : "owned"; }
+var LS_KEY = "lego-ninjago-mine-v1";
+var myOwned = new Set();
+var myRemoved = new Set();
+var myWanted = new Set();
+function loadMine(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    var o = JSON.parse(raw);
+    (o.owned || []).forEach(function(f){ myOwned.add(f); });
+    (o.removed || []).forEach(function(f){ myRemoved.add(f); });
+    (o.wanted || []).forEach(function(f){ myWanted.add(f); });
+  }catch(e){}
+}
+function saveMine(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({owned:Array.from(myOwned), removed:Array.from(myRemoved), wanted:Array.from(myWanted)}));
+  }catch(e){}
+}
+loadMine();
+function ownOf(d){ var base = d[8] === "owned"; return ((base && !myRemoved.has(d[2])) || myOwned.has(d[2])) ? "owned" : "unowned"; }
+function isWanted(d){ return myWanted.has(d[2]); }
+function matchesOwn(d){ if (state.own === "wanted") return isWanted(d); return ownOf(d) === state.own; }
 function ownLabel(d){ return ownOf(d) === "unowned" ? "未擁有" : "已擁有"; }
 function syncOwnToggle(){
   var owned = 0, unowned = 0;
@@ -1673,6 +1719,9 @@ function syncOwnToggle(){
   var muc = document.getElementById("mOwnUnownedCnt"); if (muc) muc.textContent = unowned;
   var mbo = document.getElementById("mOwnOwned"); if (mbo) mbo.setAttribute("aria-pressed", state.own === "owned" ? "true" : "false");
   var mbu = document.getElementById("mOwnUnowned"); if (mbu) mbu.setAttribute("aria-pressed", state.own === "unowned" ? "true" : "false");
+  var w = myWanted.size;
+  var wc = document.getElementById("wantCnt"); if (wc) wc.textContent = w;
+  var mwc = document.getElementById("mWishCnt"); if (mwc) mwc.textContent = w;
 }
 var gridEl = document.getElementById("grid");
 var listEl = document.getElementById("list");
@@ -1705,7 +1754,7 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 function filtered(){
   var q = state.q.trim().toLowerCase();
   var out = DATA.filter(function(d){
-    if (ownOf(d) !== state.own) return false;
+    if (!matchesOwn(d)) return false;
     if (state.chars.length && state.chars.indexOf(d[0]) === -1) return false;
     if (state.year != null && d[7] !== state.year) return false;
     if (q){
@@ -1742,12 +1791,12 @@ function render(){
   var dockBtns = document.querySelectorAll(".dock-btn");
   for (var di = 0; di < dockBtns.length; di++){
     var dk = dockBtns[di].getAttribute("data-dock");
-    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || state.year != null || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
+    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || state.year != null || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc") || (dk === "own" && state.own === "wanted");
     dockBtns[di].classList.toggle("has-filter", !!on);
   }
 
   syncOwnToggle();
-  resultLine.innerHTML = "顯示 <b>" + items.length + "</b> 隻 · " + (state.own === "unowned" ? "未擁有" : "已擁有") +
+  resultLine.innerHTML = "顯示 <b>" + items.length + "</b> 隻 · " + (state.own === "wanted" ? "願望清單" : state.own === "unowned" ? "未擁有" : "已擁有") +
     (state.chars.length ? " · 角色：" + state.chars.map(function(c){ return esc(c); }).join("、") : "") +
     (state.year != null ? " · 年份：" + state.year : "") +
     (state.q ? " · 搜尋：「" + esc(state.q) + "」" : "");
@@ -1757,6 +1806,9 @@ function render(){
     if (state.own === "unowned" && !state.q && !state.chars.length && state.year == null){
       et.textContent = "尚無未擁有的人偶";
       ex.textContent = "之後新增的未擁有人偶會顯示在這裡；切回「已擁有」可看目前收藏。";
+    } else if (state.own === "wanted"){
+      et.textContent = "願望清單還是空的";
+      ex.textContent = "點卡片圖片上的 •••，把想要的人偶加進願望清單。";
     } else {
       et.textContent = "找不到符合的人偶";
       ex.textContent = "換個關鍵字，或清除目前的篩選條件再試一次。";
@@ -1769,6 +1821,7 @@ function render(){
       '<span class="thumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="' + esc(d[4]) + ' 人偶圖" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
       (un ? '<span class="badge-unowned">未擁有</span>' : '') +
+      '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項">•••</span>' +
       '</span>' +
       '<span class="card-body">' +
         '<span class="card-name">' + esc(d[4]) + '</span>' +
@@ -1783,7 +1836,8 @@ function render(){
     var un2 = ownOf(d) === "unowned";
     return '<button class="row' + (un2 ? ' is-unowned' : '') + '" data-idx="' + DATA.indexOf(d) + '">' +
       '<span class="rthumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
-      '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span></span>' +
+      '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
+      '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項">•••</span></span>' +
       '<span class="rmain"><span class="rname">' + esc(d[4]) + (un2 ? ' <span class="own-tag is-unowned">未擁有</span>' : '') + '</span>' +
       '<span class="rmeta" style="display:block">' + esc(d[0]) + ' · ' + esc(d[1]) + ' · ' + d[7] + ' · <code>' + d[2] + '</code>' + (d[3] ? ' · <code>' + d[3] + '</code>' : '') + '<span style="display:block;margin-top:2px"><span class="set-label">出處套組：</span>' + setHtml(d) + '</span></span></span>' +
       blButton(d, true) +
@@ -1805,7 +1859,52 @@ function bindCards(){
   for (var j = 0; j < links.length; j++){
     links[j].addEventListener("click", function(e){ e.stopPropagation(); });
   }
+  var mores = document.querySelectorAll("[data-more]");
+  for (var k = 0; k < mores.length; k++){
+    mores[k].addEventListener("click", function(e){ e.stopPropagation(); openCardMenu(this.getAttribute("data-more")); });
+    mores[k].addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openCardMenu(this.getAttribute("data-more")); } });
+  }
 }
+
+/* card menu: 加入收藏 / 願望清單（存在手機 localStorage，之後再同步回 Git） */
+var menuFig = null;
+function openCardMenu(fig){
+  var d = null;
+  for (var i = 0; i < DATA.length; i++){ if (DATA[i][2] === fig){ d = DATA[i]; break; } }
+  if (!d) return;
+  menuFig = d;
+  document.getElementById("cardMenuTitle").textContent = d[4];
+  var owned = ownOf(d) === "owned";
+  var want = isWanted(d);
+  var ob = document.getElementById("cardMenuOwn");
+  ob.textContent = owned ? "移除收藏" : "加入收藏";
+  var wb = document.getElementById("cardMenuWant");
+  wb.hidden = owned;
+  wb.textContent = want ? "從願望清單移除" : "加入願望清單";
+  document.getElementById("cardMenuOverlay").hidden = false;
+}
+function closeCardMenu(){ document.getElementById("cardMenuOverlay").hidden = true; menuFig = null; }
+document.getElementById("cardMenuOwn").addEventListener("click", function(){
+  if (!menuFig) return;
+  var fig = menuFig[2];
+  if (ownOf(menuFig) === "owned"){
+    if (menuFig[8] === "owned") myRemoved.add(fig); else myOwned.delete(fig);
+  } else {
+    myOwned.add(fig);
+    myRemoved.delete(fig);
+    myWanted.delete(fig);
+  }
+  saveMine(); closeCardMenu(); buildChips(); render();
+});
+document.getElementById("cardMenuWant").addEventListener("click", function(){
+  if (!menuFig) return;
+  var fig = menuFig[2];
+  if (myWanted.has(fig)) myWanted.delete(fig); else myWanted.add(fig);
+  saveMine(); closeCardMenu(); buildChips(); render();
+});
+document.getElementById("cardMenuCancel").addEventListener("click", closeCardMenu);
+document.getElementById("cardMenuOverlay").addEventListener("click", function(e){ if (e.target === this) closeCardMenu(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeCardMenu(); });
 
 /* chips */
 function toggleChar(c){
@@ -1816,7 +1915,7 @@ function toggleChar(c){
 function buildChips(){
   var counts = {};
   var total = 0;
-  DATA.forEach(function(d){ if (ownOf(d) !== state.own) return; total++; counts[d[0]] = (counts[d[0]] || 0) + 1; });
+  DATA.forEach(function(d){ if (!matchesOwn(d)) return; total++; counts[d[0]] = (counts[d[0]] || 0) + 1; });
   var chars = Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a] || a.localeCompare(b); });
   var statEl = document.getElementById("statChars"); if (statEl) statEl.textContent = chars.length;
   var html = '<button class="chip" data-char="" aria-pressed="' + (state.chars.length === 0 ? "true" : "false") + '">全部角色 <span class="cnt">' + total + '</span></button>';
@@ -1858,7 +1957,7 @@ function closeYearMenu(){
 function buildYearUI(){
   var counts = {};
   var total = 0;
-  DATA.forEach(function(d){ if (ownOf(d) !== state.own) return; total++; counts[d[7]] = (counts[d[7]] || 0) + 1; });
+  DATA.forEach(function(d){ if (!matchesOwn(d)) return; total++; counts[d[7]] = (counts[d[7]] || 0) + 1; });
   var years = Object.keys(counts).map(function(y){ return +y; }).sort(function(a,b){ return b - a; });
   var sel = document.getElementById("yearSel");
   if (sel){
@@ -2001,6 +2100,9 @@ document.getElementById("mViewGrid").addEventListener("click", function(){ state
 document.getElementById("mViewList").addEventListener("click", function(){ state.view = "list"; render(); setDockPanel(""); });
 document.getElementById("mOwnOwned").addEventListener("click", function(){ setOwn("owned"); setDockPanel(""); });
 document.getElementById("mOwnUnowned").addEventListener("click", function(){ setOwn("unowned"); setDockPanel(""); });
+function showWishlist(){ state.own = "wanted"; buildChips(); render(); window.scrollTo({ top:0 }); }
+document.getElementById("mWishBtn").addEventListener("click", function(){ showWishlist(); setDockPanel(""); });
+document.getElementById("wishBtn").addEventListener("click", function(){ showWishlist(); });
 document.getElementById("mYearBtn").addEventListener("click", function(){
   var menu = document.getElementById("mYearMenu");
   var open = menu.hidden;
