@@ -433,8 +433,8 @@
       <span class="chips-title">角色分類</span>
       <div class="head-actions">
         <div class="own-toggle" role="group" aria-label="擁有狀態篩選">
-          <button type="button" id="ownOwned" data-own="owned" aria-pressed="true">已擁有 <span class="cnt" id="ownOwnedCnt">42</span></button>
-          <button type="button" id="ownUnowned" data-own="unowned" aria-pressed="false">未擁有 <span class="cnt" id="ownUnownedCnt">1032</span></button>
+          <button type="button" id="ownOwned" data-own="owned" aria-pressed="false">已擁有 <span class="cnt" id="ownOwnedCnt">42</span></button>
+          <button type="button" id="ownUnowned" data-own="unowned" aria-pressed="true">未擁有 <span class="cnt" id="ownUnownedCnt">1032</span></button>
         </div>
         <button class="chips-toggle" id="chipsToggle" type="button" aria-expanded="false" aria-controls="chips">
           <span id="chipsToggleLabel">展開分類</span>
@@ -503,8 +503,8 @@
   </div>
   <div class="dock-section" data-section="own" hidden>
     <div class="m-seg" role="group" aria-label="擁有狀態篩選">
-      <button type="button" id="mOwnOwned" aria-pressed="true">已擁有 <span class="cnt" id="mOwnOwnedCnt">42</span></button>
-      <button type="button" id="mOwnUnowned" aria-pressed="false">未擁有 <span class="cnt" id="mOwnUnownedCnt">1032</span></button>
+      <button type="button" id="mOwnOwned" aria-pressed="false">已擁有 <span class="cnt" id="mOwnOwnedCnt">42</span></button>
+      <button type="button" id="mOwnUnowned" aria-pressed="true">未擁有 <span class="cnt" id="mOwnUnownedCnt">1032</span></button>
     </div>
   </div>
 </div>
@@ -1642,7 +1642,7 @@ var DATA = [
 ["Zugu", "Boulder Blaster", "fig-002744", "njo0125", "Zugu", "70747-1", "Boulder Blaster", 2015, "unowned"],
 ];
 
-var state = { q:"", char:"", sort:"yearDesc", view:"grid", own:"owned" };
+var state = { q:"", char:"", sort:"yearDesc", view:"grid", own:"unowned" };
 function ownOf(d){ return d[8] === "unowned" ? "unowned" : "owned"; }
 function ownLabel(d){ return ownOf(d) === "unowned" ? "未擁有" : "已擁有"; }
 function syncOwnToggle(){
@@ -1875,7 +1875,7 @@ document.getElementById("sortSel").addEventListener("change", function(){ state.
 document.getElementById("viewGrid").addEventListener("click", function(){ state.view = "grid"; render(); });
 document.getElementById("viewList").addEventListener("click", function(){ state.view = "list"; render(); });
 document.getElementById("clearBtn").addEventListener("click", function(){
-  state.q = ""; state.char = ""; state.own = "owned";
+  state.q = ""; state.char = ""; state.own = "unowned";
   document.getElementById("q").value = "";
   var mqEl = document.getElementById("mQ"); if (mqEl) mqEl.value = "";
   buildChips(); render();
