@@ -260,8 +260,8 @@
   /* ================================================================
      手機版 Threads 風格 + IG 式懸浮膠囊 dock（≤767px）— 桌面版規則不動
      上方控制列隱藏，只留結果行；功能全搬進底部懸浮膠囊 dock，
-     dock 只有圖示、沒有文字，由左到右：home、排序、搜尋、
-     分類+檢視（合併）、擁有。點圖示在 dock 上方展開對應面板；
+     dock 只有圖示、沒有文字，由左到右：home、排序、
+     分類+檢視（合併）、搜尋、擁有。點圖示在 dock 上方展開對應面板；
      頁面底部留白，避免最後一排卡片被 dock 蓋住。
      ================================================================ */
   @media (max-width:767px){
@@ -455,12 +455,12 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v13"/><path d="m4 14 3 3 3-3"/><path d="M17 20V7"/><path d="m14 10 3-3 3 3"/></svg>
     <span class="dock-dot"></span>
   </button>
-  <button class="dock-btn" type="button" data-dock="search" aria-label="搜尋" aria-expanded="false" aria-controls="dockPanel">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
-    <span class="dock-dot"></span>
-  </button>
   <button class="dock-btn" type="button" data-dock="browse" aria-label="分類與檢視" aria-expanded="false" aria-controls="dockPanel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+    <span class="dock-dot"></span>
+  </button>
+  <button class="dock-btn" type="button" data-dock="search" aria-label="搜尋" aria-expanded="false" aria-controls="dockPanel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
     <span class="dock-dot"></span>
   </button>
   <button class="dock-btn" type="button" data-dock="own" aria-label="擁有狀態" aria-expanded="false" aria-controls="dockPanel">
