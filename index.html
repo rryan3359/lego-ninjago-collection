@@ -2121,11 +2121,19 @@ function setDockPanel(key){
     if (mq) setTimeout(function(){ mq.focus({ preventScroll:true }); }, 60);
   }
 }
+function goHome(){
+  state.q = ""; state.chars = []; state.year = null; state.own = "unowned";
+  document.getElementById("q").value = "";
+  var mqEl = document.getElementById("mQ"); if (mqEl) mqEl.value = "";
+  setDockPanel("");
+  buildChips(); render();
+  window.scrollTo({ top:0 });
+}
 var allDockBtns = document.querySelectorAll(".dock-btn");
 for (var dbi = 0; dbi < allDockBtns.length; dbi++){
   allDockBtns[dbi].addEventListener("click", function(){
     var k = this.getAttribute("data-dock");
-    if (k === "home"){ setDockPanel(""); window.scrollTo({ top:0 }); return; }
+    if (k === "home"){ goHome(); return; }
     setDockPanel(dockOpenKey === k ? "" : k);
   });
 }
