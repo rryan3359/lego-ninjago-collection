@@ -296,6 +296,9 @@
     .m-seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
     .m-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:0;overflow:visible;padding:0}
     .m-chips .chip{flex:none;min-height:42px}
+    #mYears{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:2px 14px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    #mYears::-webkit-scrollbar{display:none}
+    .dock-browse-years{margin-bottom:16px}
     .dock-sub-label{font-size:13px;font-weight:700;color:var(--ink2);margin:0 0 8px}
     .dock-browse-view{margin-bottom:16px}
 
@@ -497,13 +500,13 @@
         <button type="button" id="mViewList" aria-pressed="false">列表</button>
       </div>
     </div>
+    <div class="dock-browse-years">
+      <p class="dock-sub-label">年份</p>
+      <div class="m-chips" id="mYears"></div>
+    </div>
     <div>
       <p class="dock-sub-label">角色分類</p>
       <div class="m-chips" id="mChips"></div>
-    </div>
-    <div>
-      <p class="dock-sub-label">年份</p>
-      <div class="m-chips" id="mYears"></div>
     </div>
   </div>
   <div class="dock-section" data-section="own" hidden>
