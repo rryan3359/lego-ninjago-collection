@@ -64,9 +64,11 @@
   .own-toggle button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
   .own-toggle button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
   .badge-unowned{position:absolute;top:8px;right:8px;background:var(--ink);color:var(--card);font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;letter-spacing:.02em}
-  .card-more{position:absolute;top:8px;left:8px;z-index:2;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
-  .card-more:hover,.card-more:focus-visible{background:rgba(0,0,0,.8);outline:none}
-  .row .card-more{top:6px;left:6px;width:26px;height:26px;font-size:13px}
+  .card-more{position:absolute;top:6px;right:6px;z-index:2;width:34px;height:34px;border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .card-more svg{display:block}
+  .card-more:hover,.card-more:focus-visible{background:rgba(255,255,255,.12);border-radius:8px;outline:none}
+  .row .card-more{top:0;right:0;width:32px;height:32px}
+  .row .rmeta{padding-right:34px}
   .cardmenu-overlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px}
   .cardmenu-overlay[hidden]{display:none}
   .cardmenu{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:14px;width:min(320px,90vw);box-shadow:0 14px 38px rgba(0,0,0,.55)}
@@ -109,8 +111,8 @@
   .thumb .fallback{width:100%;height:100%;display:none;align-items:center;justify-content:center;font-family:"Noto Serif TC",serif;font-size:44px;font-weight:900;color:#fff}
   .thumb.noimg img{display:none}
   .thumb.noimg .fallback{display:flex}
-  .card-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
-  .card-name{font-size:14.5px;font-weight:700;line-height:1.45}
+  .card-body{position:relative;padding:11px 13px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .card-name{font-size:14.5px;font-weight:700;line-height:1.45;padding-right:34px}
   .card-ver{font-size:12.5px;color:var(--red);font-weight:700}
   .card-set{font-size:12px;color:var(--ink2);line-height:1.55}
   .set-label{color:var(--ink3)}
@@ -136,8 +138,8 @@
   .row .rthumb .fallback{display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:"Noto Serif TC",serif;font-size:22px;font-weight:900;color:#fff}
   .row .rthumb.noimg img{display:none}
   .row .rthumb.noimg .fallback{display:flex}
-  .row .rmain{flex:1;min-width:0}
-  .row .rname{font-weight:700;font-size:14.5px;line-height:1.4}
+  .row .rmain{position:relative;flex:1;min-width:0}
+  .row .rname{font-weight:700;font-size:14.5px;line-height:1.4;padding-right:34px}
   .row .rmeta{font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.5}
   .row .bl-btn{margin-top:0;flex:none}
   @media(max-width:560px){.row .bl-btn{padding:6px 8px;font-size:12.5px}.row .rmeta .setname{display:none}}
@@ -1808,7 +1810,7 @@ function render(){
       ex.textContent = "之後新增的未擁有人偶會顯示在這裡；切回「已擁有」可看目前收藏。";
     } else if (state.own === "wanted"){
       et.textContent = "願望清單還是空的";
-      ex.textContent = "點卡片圖片上的 •••，把想要的人偶加進願望清單。";
+      ex.textContent = "點卡片標題右邊的三條線，把想要的人偶加進願望清單。";
     } else {
       et.textContent = "找不到符合的人偶";
       ex.textContent = "換個關鍵字，或清除目前的篩選條件再試一次。";
@@ -1821,10 +1823,10 @@ function render(){
       '<span class="thumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="' + esc(d[4]) + ' 人偶圖" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
       (un ? '<span class="badge-unowned">未擁有</span>' : '') +
-      '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項">•••</span>' +
       '</span>' +
       '<span class="card-body">' +
         '<span class="card-name">' + esc(d[4]) + '</span>' +
+        '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項"><svg width="17" height="13" viewBox="0 0 17 13" aria-hidden="true"><g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="15.5" y2="1.5"/><line x1="1.5" y1="6.5" x2="15.5" y2="6.5"/><line x1="1.5" y1="11.5" x2="15.5" y2="11.5"/></g></svg></span>' +
         '<span class="card-ver">' + esc(d[0]) + ' · ' + esc(d[1]) + '</span>' +
         '<span class="card-set"><span class="set-label">出處套組：</span>' + setHtml(d) + '</span>' +
         '<span class="card-ids">' + d[7] + ' · <code>' + d[2] + '</code>' + (d[3] ? ' · <code>' + d[3] + '</code>' : '') + '</span>' +
@@ -1837,8 +1839,9 @@ function render(){
     return '<button class="row' + (un2 ? ' is-unowned' : '') + '" data-idx="' + DATA.indexOf(d) + '">' +
       '<span class="rthumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
-      '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項">•••</span></span>' +
+      '</span>' +
       '<span class="rmain"><span class="rname">' + esc(d[4]) + (un2 ? ' <span class="own-tag is-unowned">未擁有</span>' : '') + '</span>' +
+      '<span class="card-more" role="button" tabindex="0" data-stop="1" data-more="' + d[2] + '" aria-label="更多選項"><svg width="17" height="13" viewBox="0 0 17 13" aria-hidden="true"><g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="15.5" y2="1.5"/><line x1="1.5" y1="6.5" x2="15.5" y2="6.5"/><line x1="1.5" y1="11.5" x2="15.5" y2="11.5"/></g></svg></span>' +
       '<span class="rmeta" style="display:block">' + esc(d[0]) + ' · ' + esc(d[1]) + ' · ' + d[7] + ' · <code>' + d[2] + '</code>' + (d[3] ? ' · <code>' + d[3] + '</code>' : '') + '<span style="display:block;margin-top:2px"><span class="set-label">出處套組：</span>' + setHtml(d) + '</span></span></span>' +
       blButton(d, true) +
     '</button>';
