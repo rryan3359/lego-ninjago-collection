@@ -464,7 +464,7 @@
     <span class="dock-dot"></span>
   </button>
   <button class="dock-btn" type="button" data-dock="own" aria-label="擁有狀態" aria-expanded="false" aria-controls="dockPanel">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><path d="M8 10h8"/><path d="M8 18h8"/></svg>
     <span class="dock-dot"></span>
   </button>
 </nav>
@@ -1154,7 +1154,7 @@ var DATA = [
 ["Bone Knight", "Jay's Titan Mech", "fig-013416", "njo0793", "Bone Knight", "71785-1", "Jay's Titan Mech", 2023, "unowned"],
 ["Bone Warrior", "Lloyd's Mech Battle EVO", "fig-013417", "njo0791", "Bone Warrior", "71781-1", "Lloyd's Mech Battle EVO", 2023, "unowned"],
 ["Bonezai", "3626b Head", "fig-002578", "", "Bonezai - 3626b Head", "2505-1", "Garmadon's Dark Fortress", 2011, "unowned"],
-["Bonezai", "3626c Head", "fig-014832", "", "Bonezai - 3626c Head", "2258-1", "Ninja Ambush", 2011, "unowned"],
+["Bonezai", "3626c Head", "fig-014832", "njo0008", "Bonezai - 3626c Head", "2258-1", "Ninja Ambush", 2011, "unowned"],
 ["Bonezai", "with Shoulder Armour", "fig-002781", "", "Bonezai with Shoulder Armour", "2115-1", "Bonezai", 2011, "unowned"],
 ["Borg Store Employee", "NINJAGO City Markets", "fig-013792", "njo0841", "Borg Store Employee", "71799-1", "NINJAGO City Markets", 2023, "unowned"],
 ["Bucko", "Cole's Dragon", "fig-001254", "njo0196", "Bucko", "70599-1", "Cole's Dragon", 2016, "unowned"],
@@ -1680,6 +1680,8 @@ function codesNamesHtml(codesStr, namesStr){
 function setHtml(d){ return codesNamesHtml(d[5], d[6]); }
 function rbUrl(fig){ return "https://rebrickable.com/minifigs/" + fig + "/"; }
 function imgSrc(fig){ return "https://cdn.rebrickable.com/media/sets/" + fig + ".jpg"; }
+function blImgSrc(id){ return "https://img.bricklink.com/ItemImage/MN/0/" + id + ".png"; }
+function imgErr(el){ var bl = el.getAttribute("data-bl"); if (bl && !el.dataset.bl){ el.dataset.bl = "1"; el.src = blImgSrc(bl); } else { el.parentNode.classList.add("noimg"); } }
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -1745,7 +1747,7 @@ function render(){
   gridEl.innerHTML = items.map(function(d, i){
     var un = ownOf(d) === "unowned";
     return '<button class="card' + (un ? ' is-unowned' : '') + '" data-idx="' + DATA.indexOf(d) + '" aria-label="' + esc(d[4]) + '">' +
-      '<span class="thumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="' + esc(d[4]) + ' 人偶圖" onerror="this.parentNode.classList.add(\'noimg\')">' +
+      '<span class="thumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="' + esc(d[4]) + ' 人偶圖" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
       (un ? '<span class="badge-unowned">未擁有</span>' : '') +
       '</span>' +
@@ -1761,7 +1763,7 @@ function render(){
   listEl.innerHTML = items.map(function(d){
     var un2 = ownOf(d) === "unowned";
     return '<button class="row' + (un2 ? ' is-unowned' : '') + '" data-idx="' + DATA.indexOf(d) + '">' +
-      '<span class="rthumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="" onerror="this.parentNode.classList.add(\'noimg\')">' +
+      '<span class="rthumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="" data-bl="' + d[3] + '" onerror="imgErr(this)">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span></span>' +
       '<span class="rmain"><span class="rname">' + esc(d[4]) + (un2 ? ' <span class="own-tag is-unowned">未擁有</span>' : '') + '</span>' +
       '<span class="rmeta" style="display:block">' + esc(d[0]) + ' · ' + esc(d[1]) + ' · ' + d[7] + ' · <code>' + d[2] + '</code>' + (d[3] ? ' · <code>' + d[3] + '</code>' : '') + '<span style="display:block;margin-top:2px"><span class="set-label">出處套組：</span>' + setHtml(d) + '</span></span></span>' +
@@ -1833,8 +1835,8 @@ function openSheet(d){
   var wrap = document.getElementById("sheetImgWrap");
   wrap.classList.remove("noimg");
   var img = document.getElementById("sheetImg");
-  img.src = imgSrc(d[2]); img.alt = d[4] + " 人偶圖";
-  img.onerror = function(){ wrap.classList.add("noimg"); };
+  img.removeAttribute("data-bl"); img.src = imgSrc(d[2]); img.alt = d[4] + " 人偶圖";
+  img.onerror = function(){ if (d[3] && !img.dataset.bl){ img.dataset.bl = "1"; img.src = blImgSrc(d[3]); } else { wrap.classList.add("noimg"); } };
   var fb = document.getElementById("sheetFallback");
   fb.style.background = colorOf(d[0]); fb.textContent = initialOf(d[0]);
   var blBtn = document.getElementById("sheetBlBtn");
