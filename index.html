@@ -93,7 +93,6 @@
   .thumb .fallback{width:100%;height:100%;display:none;align-items:center;justify-content:center;font-family:"Noto Serif TC",serif;font-size:44px;font-weight:900;color:#fff}
   .thumb.noimg img{display:none}
   .thumb.noimg .fallback{display:flex}
-  .badge-nobl{position:absolute;top:8px;left:8px;background:#57534a;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px}
   .card-body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
   .card-name{font-size:14.5px;font-weight:700;line-height:1.45}
   .card-ver{font-size:12.5px;color:var(--red);font-weight:700}
@@ -1521,7 +1520,6 @@ function render(){
     return '<button class="card' + (un ? ' is-unowned' : '') + '" data-idx="' + DATA.indexOf(d) + '" aria-label="' + esc(d[4]) + '">' +
       '<span class="thumb"><img loading="lazy" src="' + imgSrc(d[2]) + '" alt="' + esc(d[4]) + ' 人偶圖" onerror="this.parentNode.classList.add(\'noimg\')">' +
       '<span class="fallback" style="background:' + colorOf(d[0]) + '">' + initialOf(d[0]) + '</span>' +
-      (!d[3] ? '<span class="badge-nobl">無 BL 對照</span>' : '') +
       (un ? '<span class="badge-unowned">未擁有</span>' : '') +
       '</span>' +
       '<span class="card-body">' +
