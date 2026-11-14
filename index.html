@@ -1816,6 +1816,7 @@ function buildChips(){
       mBtns[mi].addEventListener("click", function(){
         state.char = this.getAttribute("data-char");
         buildChips(); render();
+        setDockPanel("");
       });
     }
   }
@@ -1918,15 +1919,19 @@ document.getElementById("mQ").addEventListener("input", function(){
   document.getElementById("q").value = this.value;
   render();
 });
+document.getElementById("mQ").addEventListener("keydown", function(e){
+  if (e.key === "Enter"){ this.blur(); setDockPanel(""); }
+});
 document.getElementById("mSortSel").addEventListener("change", function(){
   state.sort = this.value;
   document.getElementById("sortSel").value = this.value;
   render();
+  setDockPanel("");
 });
-document.getElementById("mViewGrid").addEventListener("click", function(){ state.view = "grid"; render(); });
-document.getElementById("mViewList").addEventListener("click", function(){ state.view = "list"; render(); });
-document.getElementById("mOwnOwned").addEventListener("click", function(){ setOwn("owned"); });
-document.getElementById("mOwnUnowned").addEventListener("click", function(){ setOwn("unowned"); });
+document.getElementById("mViewGrid").addEventListener("click", function(){ state.view = "grid"; render(); setDockPanel(""); });
+document.getElementById("mViewList").addEventListener("click", function(){ state.view = "list"; render(); setDockPanel(""); });
+document.getElementById("mOwnOwned").addEventListener("click", function(){ setOwn("owned"); setDockPanel(""); });
+document.getElementById("mOwnUnowned").addEventListener("click", function(){ setOwn("unowned"); setDockPanel(""); });
 
 buildChips();
 render();
