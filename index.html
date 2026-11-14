@@ -74,6 +74,8 @@
   @media (prefers-reduced-motion: reduce){.chips-toggle svg{transition:none}}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .chips.is-hidden{display:none}
+  #yearSel{display:block;width:100%;margin-top:10px}
+  #yearSel.is-hidden{display:none}
   .chip{border:1px solid var(--line2);background:var(--chip);color:var(--ink);border-radius:999px;padding:0 13px;min-height:36px;font-size:13.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
   .chip .dot{width:9px;height:9px;border-radius:50%;flex:none}
   .chip .cnt{color:var(--ink3);font-size:12px}
@@ -277,7 +279,7 @@
 
     /* --- 上方控制列：整排隱藏，只保留結果行作牆面資訊 --- */
     .controls{position:static;border-bottom:0;padding:4px 0 0;margin-top:10px;background:transparent}
-    .controls .ctrl-row,.controls .chips-head,.controls #chips,.controls #years{display:none}
+    .controls .ctrl-row,.controls .chips-head,.controls #chips,.controls #yearSel{display:none}
     .result-line{margin:2px 2px 0;font-size:12.5px;color:var(--ink3)}
 
     /* --- 展開面板：浮在 dock 上方的卡片，內容過長時面板內捲動 --- */
@@ -296,9 +298,13 @@
     .m-seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
     .m-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:0;overflow:visible;padding:0}
     .m-chips .chip{flex:none;min-height:42px}
-    #mYears{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:2px 14px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-    #mYears::-webkit-scrollbar{display:none}
     .dock-browse-years{margin-bottom:16px}
+    .year-select{position:relative}
+    #mYearBtn{width:100%;min-height:50px;border:1px solid var(--line2);border-radius:12px;background:var(--card2);color:var(--ink);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+    .year-menu{margin-top:8px;background:var(--card2);border:1px solid var(--line2);border-radius:16px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.5);max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .year-menu[hidden]{display:none}
+    .year-menu button{display:block;width:100%;min-height:46px;border:0;background:transparent;color:var(--ink);font-size:16px;font-family:inherit;cursor:pointer;border-radius:999px}
+    .year-menu button[aria-selected="true"]{background:var(--chip-on);color:var(--chip-on-ink);font-weight:700}
     .dock-sub-label{font-size:13px;font-weight:700;color:var(--ink2);margin:0 0 8px}
     .dock-browse-view{margin-bottom:16px}
 
@@ -446,7 +452,7 @@
       </div>
     </div>
     <div class="chips is-hidden" id="chips"></div>
-    <div class="chips is-hidden" id="years"></div>
+    <select id="yearSel" class="is-hidden" aria-label="年份"></select>
     <p class="result-line" id="resultLine"></p>
   </div>
 
@@ -502,7 +508,10 @@
     </div>
     <div class="dock-browse-years">
       <p class="dock-sub-label">年份</p>
-      <div class="m-chips" id="mYears"></div>
+      <div class="year-select">
+        <button type="button" id="mYearBtn" aria-expanded="false" aria-haspopup="listbox"><span id="mYearBtnLabel">全部年份</span><span class="year-caret">&#9662;</span></button>
+        <div class="year-menu" id="mYearMenu" role="listbox" hidden></div>
+      </div>
     </div>
     <div>
       <p class="dock-sub-label">角色分類</p>
@@ -1650,7 +1659,7 @@ var DATA = [
 ["Zugu", "Boulder Blaster", "fig-002744", "njo0125", "Zugu", "70747-1", "Boulder Blaster", 2015, "unowned"],
 ];
 
-var state = { q:"", chars:[], years:[], sort:"yearDesc", view:"grid", own:"unowned" };
+var state = { q:"", chars:[], year:null, sort:"yearDesc", view:"grid", own:"unowned" };
 function ownOf(d){ return d[8] === "unowned" ? "unowned" : "owned"; }
 function ownLabel(d){ return ownOf(d) === "unowned" ? "未擁有" : "已擁有"; }
 function syncOwnToggle(){
@@ -1698,7 +1707,7 @@ function filtered(){
   var out = DATA.filter(function(d){
     if (ownOf(d) !== state.own) return false;
     if (state.chars.length && state.chars.indexOf(d[0]) === -1) return false;
-    if (state.years.length && state.years.indexOf(d[7]) === -1) return false;
+    if (state.year != null && d[7] !== state.year) return false;
     if (q){
       var hay = (d[0]+" "+d[1]+" "+d[2]+" "+d[3]+" "+d[4]+" "+d[5]+" "+d[6]+" "+d[7]).toLowerCase();
       if (hay.indexOf(q) === -1) return false;
@@ -1733,19 +1742,19 @@ function render(){
   var dockBtns = document.querySelectorAll(".dock-btn");
   for (var di = 0; di < dockBtns.length; di++){
     var dk = dockBtns[di].getAttribute("data-dock");
-    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || state.years.length > 0 || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
+    var on = (dk === "search" && !!state.q) || (dk === "browse" && (state.chars.length > 0 || state.year != null || !isGrid)) || (dk === "sort" && state.sort !== "yearDesc");
     dockBtns[di].classList.toggle("has-filter", !!on);
   }
 
   syncOwnToggle();
   resultLine.innerHTML = "顯示 <b>" + items.length + "</b> 隻 · " + (state.own === "unowned" ? "未擁有" : "已擁有") +
     (state.chars.length ? " · 角色：" + state.chars.map(function(c){ return esc(c); }).join("、") : "") +
-    (state.years.length ? " · 年份：" + state.years.slice().sort(function(a,b){ return b - a; }).join("、") : "") +
+    (state.year != null ? " · 年份：" + state.year : "") +
     (state.q ? " · 搜尋：「" + esc(state.q) + "」" : "");
   if (!items.length){
     var et = document.getElementById("emptyTitle");
     var ex = document.getElementById("emptyText");
-    if (state.own === "unowned" && !state.q && !state.chars.length && !state.years.length){
+    if (state.own === "unowned" && !state.q && !state.chars.length && state.year == null){
       et.textContent = "尚無未擁有的人偶";
       ex.textContent = "之後新增的未擁有人偶會顯示在這裡；切回「已擁有」可看目前收藏。";
     } else {
@@ -1834,42 +1843,46 @@ function buildChips(){
       });
     }
   }
-  buildYearChips();
+  buildYearUI();
 }
-function toggleYear(y){
-  if (y === ""){ state.years = []; return; }
-  var n = +y;
-  var i = state.years.indexOf(n);
-  if (i === -1) state.years.push(n); else state.years.splice(i, 1);
+function setYear(y){
+  state.year = y;
+  buildYearUI(); render();
 }
-function buildYearChips(){
+function closeYearMenu(){
+  var menu = document.getElementById("mYearMenu");
+  if (menu) menu.hidden = true;
+  var b = document.getElementById("mYearBtn");
+  if (b) b.setAttribute("aria-expanded", "false");
+}
+function buildYearUI(){
   var counts = {};
   var total = 0;
   DATA.forEach(function(d){ if (ownOf(d) !== state.own) return; total++; counts[d[7]] = (counts[d[7]] || 0) + 1; });
   var years = Object.keys(counts).map(function(y){ return +y; }).sort(function(a,b){ return b - a; });
-  var html = '<button class="chip" data-year="" aria-pressed="' + (state.years.length === 0 ? "true" : "false") + '">全部年份 <span class="cnt">' + total + '</span></button>';
-  html += years.map(function(y){
-    return '<button class="chip" data-year="' + y + '" aria-pressed="' + (state.years.indexOf(y) !== -1 ? "true" : "false") + '">' + y + ' <span class="cnt">' + counts[y] + '</span></button>';
-  }).join("");
-  var wrap = document.getElementById("years");
-  if (wrap){
-    wrap.innerHTML = html;
-    var btns = wrap.querySelectorAll(".chip");
+  var sel = document.getElementById("yearSel");
+  if (sel){
+    var opts = '<option value="">全部年份 (' + total + ')</option>';
+    opts += years.map(function(y){ return '<option value="' + y + '"' + (state.year === y ? ' selected' : '') + '>' + y + ' (' + counts[y] + ')</option>'; }).join("");
+    sel.innerHTML = opts;
+    sel.value = state.year == null ? "" : String(state.year);
+  }
+  var lbl = document.getElementById("mYearBtnLabel");
+  if (lbl) lbl.textContent = state.year == null ? "全部年份" : String(state.year);
+  var menu = document.getElementById("mYearMenu");
+  if (menu){
+    var rows = '<button type="button" role="option" data-year="" aria-selected="' + (state.year == null ? "true" : "false") + '">全部年份</button>';
+    rows += years.map(function(y){
+      return '<button type="button" role="option" data-year="' + y + '" aria-selected="' + (state.year === y ? "true" : "false") + '">' + y + '</button>';
+    }).join("");
+    menu.innerHTML = rows;
+    var btns = menu.querySelectorAll("button");
     for (var i = 0; i < btns.length; i++){
       btns[i].addEventListener("click", function(){
-        toggleYear(this.getAttribute("data-year"));
-        buildYearChips(); render();
-      });
-    }
-  }
-  var mWrap = document.getElementById("mYears");
-  if (mWrap){
-    mWrap.innerHTML = html;
-    var mBtns = mWrap.querySelectorAll(".chip");
-    for (var mi = 0; mi < mBtns.length; mi++){
-      mBtns[mi].addEventListener("click", function(){
-        toggleYear(this.getAttribute("data-year"));
-        buildYearChips(); render();
+        var v = this.getAttribute("data-year");
+        closeYearMenu();
+        setYear(v === "" ? null : +v);
+        setDockPanel("");
       });
     }
   }
@@ -1911,7 +1924,7 @@ var chipsHead = document.getElementById("chipsHead");
 var chipsToggle = document.getElementById("chipsToggle");
 chipsToggle.addEventListener("click", function(){
   var hidden = chipsEl.classList.toggle("is-hidden");
-  var yearsEl = document.getElementById("years");
+  var yearsEl = document.getElementById("yearSel");
   if (yearsEl) yearsEl.classList.toggle("is-hidden", hidden);
   chipsHead.classList.toggle("is-collapsed", hidden);
   chipsToggle.setAttribute("aria-expanded", hidden ? "false" : "true");
@@ -1921,7 +1934,7 @@ chipsToggle.addEventListener("click", function(){
 /* controls — 已擁有 / 未擁有（位於展開／收起分類左邊） */
 function setOwn(v){
   if (state.own === v) return;
-  state.own = v; state.chars = []; state.years = [];
+  state.own = v; state.chars = []; state.year = null;
   buildChips(); render();
 }
 document.getElementById("ownOwned").addEventListener("click", function(){ setOwn("owned"); });
@@ -1931,7 +1944,7 @@ document.getElementById("sortSel").addEventListener("change", function(){ state.
 document.getElementById("viewGrid").addEventListener("click", function(){ state.view = "grid"; render(); });
 document.getElementById("viewList").addEventListener("click", function(){ state.view = "list"; render(); });
 document.getElementById("clearBtn").addEventListener("click", function(){
-  state.q = ""; state.chars = []; state.years = []; state.own = "unowned";
+  state.q = ""; state.chars = []; state.year = null; state.own = "unowned";
   document.getElementById("q").value = "";
   var mqEl = document.getElementById("mQ"); if (mqEl) mqEl.value = "";
   buildChips(); render();
@@ -1944,6 +1957,7 @@ var dockTitles = { sort:"排序", search:"搜尋", browse:"分類與檢視", own
 var dockOpenKey = "";
 function setDockPanel(key){
   dockOpenKey = key;
+  if (key !== "browse") closeYearMenu();
   var btns = document.querySelectorAll(".dock-btn");
   for (var i = 0; i < btns.length; i++){
     btns[i].setAttribute("aria-expanded", btns[i].getAttribute("data-dock") === key ? "true" : "false");
@@ -1987,6 +2001,15 @@ document.getElementById("mViewGrid").addEventListener("click", function(){ state
 document.getElementById("mViewList").addEventListener("click", function(){ state.view = "list"; render(); setDockPanel(""); });
 document.getElementById("mOwnOwned").addEventListener("click", function(){ setOwn("owned"); setDockPanel(""); });
 document.getElementById("mOwnUnowned").addEventListener("click", function(){ setOwn("unowned"); setDockPanel(""); });
+document.getElementById("mYearBtn").addEventListener("click", function(){
+  var menu = document.getElementById("mYearMenu");
+  var open = menu.hidden;
+  menu.hidden = !open;
+  this.setAttribute("aria-expanded", open ? "true" : "false");
+});
+document.getElementById("yearSel").addEventListener("change", function(){
+  setYear(this.value === "" ? null : +this.value);
+});
 
 buildChips();
 render();
